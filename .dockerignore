@@ -1,0 +1,4 @@
+# Only the docs page and its server config go into the Railway image.
+*
+!docs/
+!deploy/

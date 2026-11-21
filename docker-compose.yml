@@ -1,0 +1,36 @@
+# Services: the containers that run. Here: the database and the Odoo server.
+# ================================= Services =================================
+services:
+  # PostgreSQL database that Odoo stores its data in
+  # ---------------------------- Database Service ----------------------------
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+    volumes:
+      - db-data:/var/lib/postgresql/data
+  # -------------------------- End Database Service --------------------------
+
+  # Odoo 18 server
+  # ------------------------------ Odoo Service ------------------------------
+  odoo:
+    image: odoo:18.0
+    depends_on:
+      - db
+    ports:
+      - "127.0.0.1:8069:8069"
+    volumes:
+      - ./addons:/mnt/extra-addons
+      - ./config:/etc/odoo
+      - odoo-data:/var/lib/odoo
+  # ---------------------------- End Odoo Service ----------------------------
+# =============================== End Services ===============================
+
+# Volumes: named storage that Docker keeps even when a container is removed.
+# ================================= Volumes ==================================
+volumes:
+  db-data:
+  odoo-data:
+# =============================== End Volumes ================================

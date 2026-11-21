@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Views: the screens of a resource (list and form). -->
+    <!-- ============================= Views ============================= -->
+    <!-- List of resources -->
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~ List View ~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <record id="booking_resource_view_list" model="ir.ui.view">
+        <field name="name">booking.resource.list</field>
+        <field name="model">booking.resource</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="resource_type"/>
+                <field name="open_from" widget="float_time"/>
+                <field name="open_to" widget="float_time"/>
+            </list>
+        </field>
+    </record>
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~ End List View ~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+    <!-- Form to create or edit one resource -->
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~ Form View ~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <record id="booking_resource_view_form" model="ir.ui.view">
+        <field name="name">booking.resource.form</field>
+        <field name="model">booking.resource</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="resource_type"/>
+                    </group>
+                    <group string="Opening Hours">
+                        <field name="open_from" widget="float_time"/>
+                        <field name="open_to" widget="float_time"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~ End Form View ~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <!-- =========================== End Views =========================== -->
+
+    <!-- What the Resources menu opens -->
+    <!-- ============================ Action ============================= -->
+    <record id="booking_resource_action" model="ir.actions.act_window">
+        <field name="name">Resources</field>
+        <field name="res_model">booking.resource</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <!-- ========================== End Action =========================== -->
+</odoo>

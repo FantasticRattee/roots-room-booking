@@ -1,0 +1,20 @@
+server {
+    listen ${PORT};
+    listen [::]:${PORT};
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index room-booking-diagrams.html;
+
+    # The diagrams file is one big HTML page, so compress it.
+    gzip on;
+    gzip_min_length 1024;
+    gzip_types text/html text/css application/javascript application/json image/svg+xml;
+
+    add_header X-Content-Type-Options nosniff always;
+    add_header Cache-Control "no-cache" always;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}

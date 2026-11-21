@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Access groups: who is a Manager. -->
+    <!-- ========================= Access Groups ========================= -->
+    <!-- Category of our group: the "Room Booking" dropdown on the user form. -->
+    <record id="module_category_room_booking" model="ir.module.category">
+        <field name="name">Room Booking</field>
+        <field name="sequence">50</field>
+    </record>
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~ End Category ~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+    <!-- Manager: sees and changes every booking and manages resources. -->
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~ Group: Manager ~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <record id="group_booking_manager" model="res.groups">
+        <field name="name">Manager (all bookings)</field>
+        <field name="category_id" ref="module_category_room_booking"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="users" eval="[(4, ref('base.user_admin'))]"/>
+    </record>
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~ End Group: Manager ~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <!-- ======================= End Access Groups ======================= -->
+
+    <!-- Record rules: which bookings a user may read or change. -->
+    <!-- ========================= Record Rules ========================== -->
+    <!-- Employees: may create and edit only their own bookings; everyone can read all. -->
+    <!-- ~~~~~~~~~~~~~~~~~ Rule: Employees Own Bookings ~~~~~~~~~~~~~~~~~~ -->
+    <record id="booking_rule_employee_own" model="ir.rule">
+        <field name="name">Booking: employees edit only their own</field>
+        <field name="model_id" ref="model_booking_booking"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <!-- ~~~~~~~~~~~~~~~ End Rule: Employees Own Bookings ~~~~~~~~~~~~~~~~ -->
+
+    <!-- Managers: all bookings (rules of different groups are combined with OR). -->
+    <!-- ~~~~~~~~~~~~~~~~~~ Rule: Managers All Bookings ~~~~~~~~~~~~~~~~~~ -->
+    <record id="booking_rule_manager_all" model="ir.rule">
+        <field name="name">Booking: managers edit all</field>
+        <field name="model_id" ref="model_booking_booking"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_booking_manager'))]"/>
+    </record>
+    <!-- ~~~~~~~~~~~~~~~~ End Rule: Managers All Bookings ~~~~~~~~~~~~~~~~ -->
+    <!-- ======================= End Record Rules ======================== -->
+</odoo>

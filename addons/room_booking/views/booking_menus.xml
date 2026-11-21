@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Menus: the entries in Odoo's top bar. Each opens an action or holds other menus. -->
+    <!-- ============================= Menus ============================= -->
+    <!-- Top-level app on the Odoo home screen -->
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~ App Menu ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <menuitem id="menu_room_booking_root" name="Room Booking" sequence="10"/>
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~ End App Menu ~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+    <!-- Room Booking > Bookings -->
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~ Bookings Menu ~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <menuitem id="menu_room_booking_bookings" name="Bookings"
+              parent="menu_room_booking_root" action="booking_booking_action" sequence="10"/>
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~~ End Bookings Menu ~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+    <!-- Room Booking > Configuration > Resources (managers only) -->
+    <!-- ~~~~~~~~~~~~~~~~~~~~~~ Configuration Menu ~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <menuitem id="menu_room_booking_config" name="Configuration"
+              parent="menu_room_booking_root" sequence="90"
+              groups="group_booking_manager"/>
+    <menuitem id="menu_room_booking_resources" name="Resources"
+              parent="menu_room_booking_config" action="booking_resource_action" sequence="10"/>
+    <!-- ~~~~~~~~~~~~~~~~~~~~ End Configuration Menu ~~~~~~~~~~~~~~~~~~~~~ -->
+    <!-- =========================== End Menus =========================== -->
+</odoo>

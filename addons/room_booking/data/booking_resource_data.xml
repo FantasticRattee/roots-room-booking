@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sample resources to book right after install. Under 'data', not 'demo', because
+     this setup runs without demo data. noupdate="1": upgrades keep changes made in the app. -->
+<odoo noupdate="1">
+    <!-- ========================== Sample Data ========================== -->
+    <record id="resource_meeting_room_a" model="booking.resource">
+        <field name="name">Meeting Room A</field>
+        <field name="resource_type">room</field>
+    </record>
+    <record id="resource_meeting_room_b" model="booking.resource">
+        <field name="name">Meeting Room B</field>
+        <field name="resource_type">room</field>
+    </record>
+    <record id="resource_projector_1" model="booking.resource">
+        <field name="name">Projector 1</field>
+        <field name="resource_type">equipment</field>
+    </record>
+    <!-- ======================== End Sample Data ======================== -->
+</odoo>
