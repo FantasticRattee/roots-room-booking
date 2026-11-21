@@ -13,6 +13,14 @@
               parent="menu_room_booking_root" action="booking_booking_action" sequence="10"/>
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~ End Bookings Menu ~~~~~~~~~~~~~~~~~~~~~~~ -->
 
+    <!-- Room Booking > Rooms and Room Booking > Equipment: the same bookings, one type each -->
+    <!-- ~~~~~~~~~~~~~~~~~~~~ Rooms and Equipment Menus ~~~~~~~~~~~~~~~~~~~~ -->
+    <menuitem id="menu_room_booking_rooms" name="Rooms"
+              parent="menu_room_booking_root" action="booking_room_action" sequence="20"/>
+    <menuitem id="menu_room_booking_equipment" name="Equipment"
+              parent="menu_room_booking_root" action="booking_equipment_action" sequence="30"/>
+    <!-- ~~~~~~~~~~~~~~~~~~ End Rooms and Equipment Menus ~~~~~~~~~~~~~~~~~~ -->
+
     <!-- Room Booking > Configuration > Resources (managers only) -->
     <!-- ~~~~~~~~~~~~~~~~~~~~~~ Configuration Menu ~~~~~~~~~~~~~~~~~~~~~~~ -->
     <menuitem id="menu_room_booking_config" name="Configuration"

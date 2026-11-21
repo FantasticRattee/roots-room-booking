@@ -46,6 +46,9 @@ class TestBooking(TransactionCase):
         cls.room = cls.env['booking.resource'].create({
             'name': 'Test Room', 'open_from': 8, 'open_to': 18,
         })
+        cls.projector = cls.env['booking.resource'].create({
+            'name': 'Test Projector', 'resource_type': 'equipment', 'open_from': 8, 'open_to': 18,
+        })
     # ---------------------------- End setUpClass ----------------------------
 
     # Create a booking as `user`, with times given in Bangkok hours (9.5 = 09:30).
@@ -316,3 +319,64 @@ class TestBooking(TransactionCase):
     # ------------- End test_employee_cannot_give_a_booking_away -------------
 
     # =========================== End R4 Lifecycle ===========================
+
+    # Room and equipment in one form: one save makes one booking per resource chosen.
+    # A room and a projector are two bookings, saved together or not at all.
+    # ================== Room and Equipment Together ==================
+
+    # Both picked: two bookings with the same purpose, owner and time, one per resource.
+    # --------------- test_room_and_equipment_are_saved_together ---------------
+    def test_room_and_equipment_are_saved_together(self):
+        bookings = self.env['booking.booking'].with_user(self.employee).create({
+            'name': 'Team sync',
+            'room_id': self.room.id,
+            'equipment_id': self.projector.id,
+            'start': bangkok_to_utc(FUTURE_DAY, 9),
+            'stop': bangkok_to_utc(FUTURE_DAY, 10),
+        })
+        self.assertEqual(sorted(bookings.mapped('resource_id.id')), sorted([self.room.id, self.projector.id]))
+        self.assertEqual(set(bookings.mapped('state')), {'requested'})
+        self.assertEqual(set(bookings.mapped('user_id.id')), {self.employee.id})
+        self.assertEqual(set(bookings.mapped('name')), {'Team sync'})
+    # ------------- End test_room_and_equipment_are_saved_together -------------
+
+    # The projector is taken at that time, so the room is not saved either.
+    # ----------------- test_equipment_clash_saves_neither_booking -----------------
+    def test_equipment_clash_saves_neither_booking(self):
+        self.book(self.other_employee, 9, 10, resource=self.projector)
+        bookings_before = self.env['booking.booking'].search_count([])
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            self.env['booking.booking'].with_user(self.employee).create({
+                'name': 'Team sync',
+                'room_id': self.room.id,
+                'equipment_id': self.projector.id,
+                'start': bangkok_to_utc(FUTURE_DAY, 9),
+                'stop': bangkok_to_utc(FUTURE_DAY, 10),
+            })
+        self.assertEqual(self.env['booking.booking'].search_count([]), bookings_before)
+    # --------------- End test_equipment_clash_saves_neither_booking ---------------
+
+    # Only an equipment: a single booking, no room needed.
+    # ------------------- test_equipment_alone_is_allowed -------------------
+    def test_equipment_alone_is_allowed(self):
+        booking = self.env['booking.booking'].with_user(self.employee).create({
+            'name': 'Projector only',
+            'equipment_id': self.projector.id,
+            'start': bangkok_to_utc(FUTURE_DAY, 14),
+            'stop': bangkok_to_utc(FUTURE_DAY, 15),
+        })
+        self.assertEqual(booking.resource_id, self.projector)
+    # ----------------- End test_equipment_alone_is_allowed -----------------
+
+    # A booking needs a room or an equipment: with neither, nothing is saved.
+    # ------------------ test_booking_needs_a_room_or_an_equipment ------------------
+    def test_booking_needs_a_room_or_an_equipment(self):
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            self.env['booking.booking'].with_user(self.employee).create({
+                'name': 'Nothing picked',
+                'start': bangkok_to_utc(FUTURE_DAY, 9),
+                'stop': bangkok_to_utc(FUTURE_DAY, 10),
+            })
+    # ---------------- End test_booking_needs_a_room_or_an_equipment ----------------
+
+    # ============================ End Room and Equipment Together ============================

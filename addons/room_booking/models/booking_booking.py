@@ -74,6 +74,20 @@ class BookingBooking(models.Model):
         default='requested',
         copy=False,
     )
+    # Helper fields for the form (not saved as columns). The form asks for a room, an
+    # equipment or both. create() turns them into the real bookings: one per resource.
+    room_id = fields.Many2one(
+        'booking.resource',
+        string='Room',
+        domain=[('resource_type', '=', 'room')],
+        store=False,
+    )
+    equipment_id = fields.Many2one(
+        'booking.resource',
+        string='Equipment',
+        domain=[('resource_type', '=', 'equipment')],
+        store=False,
+    )
 # ============================= End Data Schema ==============================
 
     # Constraints: rules the data must follow, or Odoo cancels the save. A method named
@@ -148,13 +162,27 @@ class BookingBooking(models.Model):
     # =========================== Lifecycle Rules ============================
 
     # A new booking always starts as Requested, even if someone sends another status.
-    # Odoo passes a list here: one dict of values per new booking.
+    # The form can send a room, an equipment or both. Both means two bookings, saved in one
+    # step: if one of them clashes, neither is saved. Odoo passes a list here: one dict of
+    # values per new booking.
     # -------------------------------- create --------------------------------
     @api.model_create_multi
     def create(self, vals_list):
+        bookings_to_save = []
         for vals in vals_list:
+            room = vals.pop('room_id', False)
+            equipment = vals.pop('equipment_id', False)
+            if not (room or equipment or vals.get('resource_id')):
+                raise ValidationError(_('Choose a room or an equipment for this booking.'))
             vals['state'] = 'requested'
-        return super().create(vals_list)
+            if room or equipment:
+                vals['resource_id'] = room or equipment
+            bookings_to_save.append(vals)
+            if room and equipment:
+                bookings_to_save.append(dict(vals, resource_id=equipment))
+        # One savepoint: if any of the bookings fails, none of them is saved.
+        with self.env.cr.savepoint():
+            return super().create(bookings_to_save)
     # ------------------------------ End create ------------------------------
 
     # Check the change first, then let Odoo save it (super) as usual.

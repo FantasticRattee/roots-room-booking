@@ -1542,7 +1542,7 @@
         </div>
       </section>
 
-      <section id="view-odoo" class="view" data-view="odoo" data-stage-width="1920" data-stage-height="1205" role="tabpanel" aria-label="Odoo module architecture diagram" hidden>
+      <section id="view-odoo" class="view" data-view="odoo" data-stage-width="1920" data-stage-height="1245" role="tabpanel" aria-label="Odoo module architecture diagram" hidden>
         <section class="diagram-content">
           <header class="diagram-header">
             <div>
@@ -1685,7 +1685,7 @@
               <section class="flow">
                 <h2>เปิดเมนู Bookings แล้วเกิดอะไรขึ้น</h2>
                 <ol class="steps">
-                  <li><span class="n">1</span><span class="t">คลิกเมนู Room Booking › Bookings<span class="where">เบราว์เซอร์</span></span></li>
+                  <li><span class="n">1</span><span class="t">คลิกเมนู Room Booking › Bookings<span class="where">เบราว์เซอร์ · Rooms และ Equipment เปิด booking.booking ชุดเดียวกัน ต่างกันที่ filter ที่เปิดไว้</span></span></li>
                   <li><span class="n">2</span><span class="t">web client ขอ action และ views<span class="where">server อ่านจาก ir.ui.menu / ir.actions / ir.ui.view (มาจาก views/*.xml)</span></span></li>
                   <li><span class="n">3</span><span class="t">web client วาดตาราง list จาก view XML<span class="where">ขั้นนี้ยังมีแต่หัวคอลัมน์ · แถวข้อมูลมาในขั้น 4–7</span></span></li>
                   <li><span class="n">4</span><span class="t">ขอข้อมูลการจอง (<code>web_search_read</code> บน <code>booking.booking</code>)</span></li>
@@ -1699,9 +1699,9 @@
                 <h2>กด Save (สร้างหรือแก้การจอง)</h2>
                 <ol class="steps">
                   <li><span class="n">1</span><span class="t">web client ส่ง <code>create</code> หรือ <code>write</code> ไปที่ server</span></li>
-                  <li><span class="n">2</span><span class="t">โค้ดเราใน <code>create()</code> / <code>write()</code> ทำก่อน: คุมลำดับสถานะ <span class="chip r">R4</span></span></li>
+                  <li><span class="n">2</span><span class="t">โค้ดเราใน <code>create()</code> / <code>write()</code> ทำก่อน: คุมลำดับสถานะ <span class="chip r">R4</span><span class="where">ถ้ากรอกทั้งห้องและอุปกรณ์ create() แยกเป็น 2 booking · ไม่กรอกเลย = error</span></span></li>
                   <li><span class="n">3</span><span class="t">เช็กสิทธิ์: พนักงานสร้าง/แก้ได้เฉพาะการจองของตัวเอง <span class="chip r">R1</span><span class="where">ACL ก่อน · แล้วค่อย record rule · ตอนแก้ เช็กก่อนบันทึก · ตอนสร้าง เช็กหลัง constraint (ดูเช็ก 4 ในแท็บ Activity ละเอียด)</span></span></li>
-                  <li><span class="n">4</span><span class="t">ORM บันทึกลง <code>booking_booking</code> → constraint เช็ก <span class="chip r">R2</span> <span class="chip r">R3</span><span class="where">R2 จองชน · R3 เวลาเปิด · ไม่ผ่าน = error + rollback ไม่เหลืออะไรใน database</span></span></li>
+                  <li><span class="n">4</span><span class="t">ORM บันทึกลง <code>booking_booking</code> → constraint เช็ก <span class="chip r">R2</span> <span class="chip r">R3</span><span class="where">R2 จองชน · R3 เวลาเปิด · ไม่ผ่าน = error + rollback ไม่เหลืออะไรใน database · ห้อง + อุปกรณ์: ชนอันใดอันหนึ่ง ก็ไม่บันทึกทั้งคู่</span></span></li>
                 </ol>
               </section>
 
@@ -1728,7 +1728,7 @@
         </section>
       </section>
 
-      <section id="view-design" class="view" data-view="design" data-stage-width="1920" data-stage-height="1370" role="tabpanel" aria-label="Forward engineering design of the room booking module" hidden>
+      <section id="view-design" class="view" data-view="design" data-stage-width="1920" data-stage-height="1425" role="tabpanel" aria-label="Forward engineering design of the room booking module" hidden>
         <section class="diagram-content">
           <header class="diagram-header">
             <div>
@@ -1805,6 +1805,8 @@
                   <div class="uml-sec">
                     <div>+ name: Char <span class="c">(required) จองไปทำอะไร</span></div>
                     <div>+ resource_id: Many2one → booking.resource <span class="c">(required)</span></div>
+                    <div>+ room_id: Many2one <span class="c">ฟอร์มใหม่ · ไม่เก็บ</span></div>
+                    <div>+ equipment_id: Many2one <span class="c">ฟอร์มใหม่ · ไม่เก็บ</span></div>
                     <div>+ user_id: Many2one → res.users <span class="c">= คนที่ login</span></div>
                     <div>+ start, stop: Datetime <span class="c">(required)</span></div>
                     <div>+ state: Selection = requested <span class="c">(required, copy=False)</span></div>
@@ -1816,6 +1818,7 @@
                     <div># _check_inside_opening_hours() <span class="c">@constrains → D5</span></div>
                     <div># _check_no_double_booking() <span class="c">@constrains → D5</span></div>
                     <div>~ create() <span class="c">บังคับ state = requested → D3</span></div>
+                    <div>~ create() <span class="c">ห้อง + อุปกรณ์ → 2 booking → D5</span></div>
                     <div>~ write() <span class="c">เช็ค state + ล็อกเวลา → D3</span></div>
                   </div>
                 </div>
@@ -1875,6 +1878,7 @@
                     <li><b>Overlap:</b> หา booking อื่นของ resource เดียวกัน ที่ state เป็น requested/confirmed และ <code>other.start &lt; stop</code> และ <code>other.stop &gt; start</code> → เจอ = <code>ValidationError</code></li>
                     <li>10:00–11:00 กับ 11:00–12:00 ไม่ชน</li>
                     <li><b>Open hours:</b> แปลงเป็นเวลาออฟฟิศ (<code>OFFICE_TIMEZONE = 'Asia/Bangkok'</code>) แล้วนับชั่วโมงจากเที่ยงคืนของวันที่เริ่ม: start ≥ open_from และ stop ≤ open_to (ข้ามวันจะเกิน 24 จึงไม่ผ่าน)</li>
+                    <li><b>ห้อง + อุปกรณ์:</b> ฟอร์มใหม่กรอกอย่างน้อย 1 ช่อง · กรอกทั้งคู่ = 2 booking (เรื่อง คนจอง เวลาเดียวกัน) บันทึกพร้อมกัน หรือไม่บันทึกเลย · แต่ละอันเช็ก R2 / R3 ของ resource ตัวเอง · ยกเลิกหรือย้ายอันหนึ่งไม่กระทบอีกอัน</li>
                   </ul>
                 </div>
 
@@ -1883,8 +1887,8 @@
                   <ul>
                     <li>Action <code>view_mode = list,calendar,form</code> → เปิดมาเป็น list</li>
                     <li>Form: statusbar + ปุ่ม Confirm / Cancel</li>
-                    <li>Calendar: ดูช่องว่าง สีตาม resource · Search: My Bookings, To Approve, group by Resource</li>
-                    <li>Menu: Room Booking › Bookings · Configuration › Resources (manager)</li>
+                    <li>Calendar: ดูช่องว่าง สีตาม resource · Search: My Bookings, To Approve, group by Resource, Rooms, Equipment</li>
+                    <li>Menu: Room Booking › Bookings (ทั้งหมด) · Rooms (กรองห้อง) · Equipment (กรองอุปกรณ์) · Configuration › Resources (manager)</li>
                   </ul>
                 </div>
               </div>
@@ -1900,11 +1904,11 @@
                 <div class="file"><span class="path">models/booking_booking.py</span><span class="tags"><span class="chip d">D2</span><span class="chip d">D3</span><span class="chip d">D5</span></span><span class="what">class BookingBooking: fields, ปุ่ม, constraints, create() / write()</span></div>
                 <div class="file"><span class="path">security/booking_security.xml</span><span class="tags"><span class="chip d">D4</span></span><span class="what">category + group Manager (admin เป็นสมาชิก) + record rules</span></div>
                 <div class="file"><span class="path">security/ir.model.access.csv</span><span class="tags"><span class="chip d">D4</span></span><span class="what">สิทธิ์ read / write / create / unlink ต่อ model (employee ลบไม่ได้)</span></div>
-                <div class="file"><span class="path">views/booking_booking_views.xml</span><span class="tags"><span class="chip d">D6</span></span><span class="what">list, form, calendar, search + action</span></div>
+                <div class="file"><span class="path">views/booking_booking_views.xml</span><span class="tags"><span class="chip d">D6</span></span><span class="what">list, form, calendar, search + action ของ Bookings, Rooms, Equipment</span></div>
                 <div class="file"><span class="path">views/booking_resource_views.xml</span><span class="tags"><span class="chip d">D6</span></span><span class="what">list, form ของ resource + action</span></div>
-                <div class="file"><span class="path">views/booking_menus.xml</span><span class="tags"><span class="chip d">D6</span></span><span class="what">เมนูทั้งหมด</span></div>
+                <div class="file"><span class="path">views/booking_menus.xml</span><span class="tags"><span class="chip d">D6</span></span><span class="what">เมนู Bookings · Rooms · Equipment · Configuration (manager)</span></div>
                 <div class="file"><span class="path">data/booking_resource_data.xml</span><span class="tags"><span class="chip d">D1</span></span><span class="what">ห้องและอุปกรณ์ตัวอย่างไว้ลองจอง</span></div>
-                <div class="file"><span class="path">tests/test_booking.py</span><span class="tags"><span class="chip r">R1–R4</span></span><span class="what">26 test แยกกลุ่มตาม rule (R1 5 · R2 6 · R3 5 · R4 10): ชน, ต่อกันพอดี, นอกเวลา, สร้างเป็น confirmed ไม่ได้, employee confirm / ลบ / แก้ของคนอื่นไม่ได้</span></div>
+                <div class="file"><span class="path">tests/test_booking.py</span><span class="tags"><span class="chip r">R1–R4</span></span><span class="what">30 test: R1–R4 26 แยกกลุ่มตาม rule (R1 5 · R2 6 · R3 5 · R4 10) และห้องกับอุปกรณ์ 4: ชน, ต่อกันพอดี, นอกเวลา, สร้างเป็น confirmed ไม่ได้, employee confirm / ลบ / แก้ของคนอื่นไม่ได้ · อีก 4 ข้อของห้องกับอุปกรณ์: บันทึกพร้อมกัน, ชนแล้วไม่บันทึกทั้งคู่, อุปกรณ์อย่างเดียว, ไม่กรอกเลย</span></div>
                 <div class="file"><span class="path">README.md</span><span class="tags"><span class="chip r">R6</span></span><span class="what">วิธีรัน, ตาราง R1–R5, design decision, trade-off (รวมสิ่งที่ simplify)</span></div>
               </div>
             </section>
@@ -2120,19 +2124,19 @@
           <p class="sq-foot" style="left:48px;top:3730px;width:1824px;">ที่มา: <code>docker compose up/down --dry-run</code> · log ของ container odoo และ db · <code>/entrypoint.sh</code> และ <code>wait-for-psql.py</code> ใน image · source Odoo 18 (<code>cli/server.py</code>, <code>modules/loading.py</code>) · เวลา +0.3 / +0.4 วิ นับจากตอน container odoo start (restart 21 พ.ย. 2026 เวลา 15:25) · D3 (13 modules, Registry 0.092 วิ) วัดจาก database ใหม่ที่มีแค่ base + room_booking · เวลาต่างกันไปทุกรอบและทุกเครื่อง</p>
         </div>
       </section>
-      <section id="view-requirements" class="view" data-view="requirements" data-stage-width="1680" data-stage-height="2759" data-open-margin="0" role="tabpanel" aria-label="Requirements: what the module must do and how far it is" hidden>
+      <section id="view-requirements" class="view" data-view="requirements" data-stage-width="1680" data-stage-height="2925" data-open-margin="0" role="tabpanel" aria-label="Requirements: what the module must do and how far it is" hidden>
         <div class="rq-content">
           <header class="rq-header">
             <div>
               <h1>Room Booking · Requirements: โจทย์ขออะไร และทำถึงไหนแล้ว</h1>
               <p class="goal"><b>เป้าหมาย</b> สร้าง Odoo module แบบ standalone ชื่อ <code>room_booking</code> ให้พนักงานภายในจอง resource (ห้อง อุปกรณ์ ฯลฯ) เป็นช่วงเวลาได้ โดยระบบกันไม่ให้จองชนกัน จองได้เฉพาะในเวลาเปิด และระบบคุมการเปลี่ยนสถานะของ booking เอง</p>
               <p class="meta"><span>ที่มา: Roots — Software Developer Exercise brief (2 หน้า)</span></p>
-              <p class="meta"><span class="asof">สถานะ ณ 21 Nov 2026</span><span class="sep" aria-hidden="true">·</span><span>ตรวจจากโค้ด · มี test 26 ข้อ (R1 5 · R2 6 · R3 5 · R4 10)</span><span class="sep" aria-hidden="true">·</span><span>อัปเดตทุกครั้งที่ทำ requirement เสร็จ</span></p>
+              <p class="meta"><span class="asof">สถานะ ณ 22 Nov 2026</span><span class="sep" aria-hidden="true">·</span><span>ตรวจจากโค้ด · มี test 30 ข้อ (R1 5 · R2 6 · R3 5 · R4 10 · ห้องกับอุปกรณ์ 4)</span><span class="sep" aria-hidden="true">·</span><span>อัปเดตทุกครั้งที่ทำ requirement เสร็จ</span></p>
             </div>
             <section class="rq-legend" aria-label="ความหมายของสถานะและ ID">
               <h2>สถานะ <small>ใช้ความหมายนี้ทั้งแท็บ</small></h2>
               <dl>
-                  <dt><span class="st done"><span class="mk" aria-hidden="true">✓</span>done</span></dt><dd>โค้ดครบตาม “ผ่านเมื่อ” และมี automated test ของข้อนั้น: R1–R4 รวม 26 ข้อ&nbsp;· ข้อที่ต้องดูบนหน้าจอ <span class="nw">(เช่น ปุ่ม Confirm / Cancel)</span> ยังไม่ได้ตรวจมือ&nbsp;· R5 เป็นเรื่องหน้าจอทั้งข้อ จึงต้องตรวจมือใน Odoo พร้อมวันที่&nbsp;· R6 เปิด Git link ใน incognito</dd>
+                  <dt><span class="st done"><span class="mk" aria-hidden="true">✓</span>done</span></dt><dd>โค้ดครบตาม “ผ่านเมื่อ” และมี automated test ของข้อนั้น: R1–R4 รวม 26 ข้อ (module รวม 30 ข้อ กับกติกาห้อง+อุปกรณ์ 4 ข้อ)&nbsp;· ข้อที่ต้องดูบนหน้าจอ <span class="nw">(เช่น ปุ่ม Confirm / Cancel)</span> ยังไม่ได้ตรวจมือ&nbsp;· R5 เป็นเรื่องหน้าจอทั้งข้อ จึงต้องตรวจมือใน Odoo พร้อมวันที่&nbsp;· R6 เปิด Git link ใน incognito</dd>
                   <dt><span class="st partial"><span class="mk" aria-hidden="true">◐</span>partial</span></dt><dd>มีโค้ดหลักแล้ว แต่ยังขาดบางส่วน หรือยังไม่ได้ยืนยัน</dd>
                   <dt><span class="st todo"><span class="mk" aria-hidden="true">◌</span>not started</span></dt><dd>ยังไม่มีโค้ดหลักของข้อนี้</dd>
                   <dt class="ids"><span class="chip r">R1</span><span class="chip d">D1</span></dt><dd>requirement จากโจทย์ · design element ในแท็บ Design</dd>
@@ -2156,7 +2160,7 @@
             <table class="rq-table">
               <colgroup><col style="width:136px"><col style="width:182px"><col style="width:234px"><col style="width:404px"><col style="width:180px"><col style="width:236px"><col></colgroup>
               <thead>
-                <tr><th scope="col">ID · ชื่อ<small>ตรงกับแท็บ Design · บรรทัดไทย = ความหมายสั้นๆ</small></th><th scope="col">โจทย์ว่า<small>สรุปจาก brief (EN)</small></th><th scope="col">เราตีความ / ตัดสินใจ<small>design decision ของเรา</small></th><th scope="col">ผ่านเมื่อ<small>acceptance check · เตรียม: user ทดสอบ 1 คนที่ไม่อยู่ในกลุ่ม Manager (ช่อง Room Booking ว่าง = Employee)</small></th><th scope="col">ออกแบบไว้<small>อ้างอิงแท็บ Design</small></th><th scope="col">โค้ด / test<small>path ใน addons/room_booking/ (README.md, .gitignore: root ของ repo) · test 26 ข้อ อยู่ใน tests/test_booking.py</small></th><th scope="col">สถานะ · ยังขาด<small>ตาม legend ด้านบน</small></th></tr>
+                <tr><th scope="col">ID · ชื่อ<small>ตรงกับแท็บ Design · บรรทัดไทย = ความหมายสั้นๆ</small></th><th scope="col">โจทย์ว่า<small>สรุปจาก brief (EN)</small></th><th scope="col">เราตีความ / ตัดสินใจ<small>design decision ของเรา</small></th><th scope="col">ผ่านเมื่อ<small>acceptance check · เตรียม: user ทดสอบ 1 คนที่ไม่อยู่ในกลุ่ม Manager (ช่อง Room Booking ว่าง = Employee)</small></th><th scope="col">ออกแบบไว้<small>อ้างอิงแท็บ Design</small></th><th scope="col">โค้ด / test<small>path ใน addons/room_booking/ (README.md, .gitignore: root ของ repo) · test 30 ข้อ อยู่ใน tests/test_booking.py</small></th><th scope="col">สถานะ · ยังขาด<small>ตาม legend ด้านบน</small></th></tr>
               </thead>
               <tbody>
                 <tr class="group"><th colspan="7" scope="colgroup">Module features · R1–R5<span>ต้องมีครบทั้ง 5 ข้อ</span></th></tr>
@@ -2164,7 +2168,7 @@
                   <td class="c-id"><span class="chip r">R1</span><span class="title">CRUD + access control</span><span class="mean">สร้าง ดู แก้ ลบการจอง ได้ตามสิทธิ์ของแต่ละคน</span><span class="src">brief p.1&nbsp;· ข้อ 1</span></td>
                   <td class="c-brief" lang="en">Users can create, view, edit and delete bookings, limited by their role.</td>
                   <td class="c-th">เราเลือก: ทุกคนดู booking ได้ทั้งหมด (เห็นว่าช่องไหนว่าง)&nbsp;· Employee สร้างและแก้ได้เฉพาะของตัวเอง ลบไม่ได้ (ใช้ Cancel แทน)&nbsp;· Manager ทำได้ทุกอย่างและจัดการ resource ได้</td>
-                  <td class="c-ok"><ol class="checks"><li>login เป็น Employee แล้วสร้าง booking ของตัวเอง → save ได้&nbsp;· ใน list เห็น booking ของคนอื่นด้วย</li><li>Employee เปิด booking ของคนอื่นแล้วแก้ชื่อ (Purpose) → ขึ้น error (AccessError)</li><li>Employee เปิด booking → ใน Action ไม่มีรายการ Delete (ลบผ่าน code → ขึ้น error AccessError)&nbsp;· Manager ลบได้</li><li>Employee เลือก Resource ใน booking ได้&nbsp;· สร้างหรือแก้ resource ไม่ได้ (ผ่าน code → ขึ้น error AccessError)&nbsp;· Manager สร้าง แก้ และลบ resource ที่ยังไม่มี booking ได้</li></ol></td>
+                  <td class="c-ok"><ol class="checks"><li>login เป็น Employee แล้วสร้าง booking ของตัวเอง → save ได้&nbsp;· ใน list เห็น booking ของคนอื่นด้วย</li><li>Employee เปิด booking ของคนอื่นแล้วแก้ชื่อ (Purpose) → ขึ้น error (AccessError)</li><li>Employee เปิด booking → ใน Action ไม่มีรายการ Delete (ลบผ่าน code → ขึ้น error AccessError)&nbsp;· Manager ลบได้</li><li>Employee เลือก Room / Equipment ในฟอร์มใหม่ได้&nbsp;· สร้างหรือแก้ resource ไม่ได้ (ผ่าน code → ขึ้น error AccessError)&nbsp;· Manager สร้าง แก้ และลบ resource ที่ยังไม่มี booking ได้</li></ol></td>
                   <td class="c-design"><ul class="refs"><li><span class="chip d">D2</span>booking.booking&nbsp;· <code>user_id</code> = คนที่ login</li><li><span class="chip d">D4</span>Access control&nbsp;· <code>ir.<wbr>model.<wbr>access.<wbr>csv</code> + <code>ir.rule</code> user_id = user.id</li></ul></td>
                   <td class="c-code"><ul class="code"><li><code class="p">models/<wbr>booking_booking.py</code><span class="w">class BookingBooking&nbsp;· fields</span></li><li><code class="p">models/<wbr>booking_resource.py</code><span class="w">class BookingResource</span></li><li><code class="p">security/<wbr>ir.model.access.csv</code><span class="w">สิทธิ์ต่อ model&nbsp;· employee ลบไม่ได้</span></li><li><code class="p">security/<wbr>booking_security.xml</code><span class="w">group Manager + <code>ir.rule</code> ของตัวเอง</span></li></ul></td>
                   <td class="c-status"><span class="st-line"><span class="st done"><span class="mk" aria-hidden="true">✓</span>done</span></span><ul class="miss"><li class="elsewhere">มี test 5 ข้อ</li></ul></td>
@@ -2173,7 +2177,7 @@
                   <td class="c-id"><span class="chip r">R2</span><span class="title">Conflict prevention</span><span class="mean">ห้องเดียวกันจองในเวลาที่ทับกันไม่ได้</span><span class="src">brief p.1&nbsp;· ข้อ 2</span></td>
                   <td class="c-brief" lang="en">Two active bookings on the same resource must not overlap (block or flag it; the approach is ours).</td>
                   <td class="c-th">เราเลือก reject: save ไม่ได้และขึ้น error&nbsp;· ชน = resource เดียวกันและเวลาทับกัน นับเฉพาะ booking ที่เป็น Requested หรือ Confirmed</td>
-                  <td class="c-ok"><ol class="checks"><li>จอง Meeting Room A 10:00–11:00 แล้วจองซ้อน 10:30–11:30 → ขึ้น error (ValidationError)</li><li>จอง Meeting Room A 10:00–11:00 แล้วจองต่อ 11:00–12:00 → save ได้ (ต่อกันพอดีไม่นับว่าชน)</li><li>booking แรกยังเป็น Requested ก็กันช่องเวลาแล้ว&nbsp;· Cancel booking แรกก่อน → จอง 10:00–11:00 ซ้ำแล้ว save ได้</li><li>จอง Meeting Room A และ Projector 1 ในเวลาเดียวกัน → save ได้ (คนละ resource)</li><li>จอง 11:00–10:00 (End ก่อน Start) → ขึ้น error (ValidationError)</li></ol></td>
+                  <td class="c-ok"><ol class="checks"><li>จอง Meeting Room A 10:00–11:00 แล้วจองซ้อน 10:30–11:30 → ขึ้น error (ValidationError)</li><li>จอง Meeting Room A 10:00–11:00 แล้วจองต่อ 11:00–12:00 → save ได้ (ต่อกันพอดีไม่นับว่าชน)</li><li>booking แรกยังเป็น Requested ก็กันช่องเวลาแล้ว&nbsp;· Cancel booking แรกก่อน → จอง 10:00–11:00 ซ้ำแล้ว save ได้</li><li>จอง Meeting Room A และ Projector 1 ในเวลาเดียวกัน → save ได้ (คนละ resource)</li><li>จองห้องกับอุปกรณ์ในฟอร์มเดียว (Meeting Room A + Projector 1) → 2 booking save พร้อมกันได้ · ถ้า Projector 1 ชนอยู่แล้ว → ไม่บันทึกทั้งคู่ (Meeting Room A ก็ไม่บันทึก)</li><li>จอง 11:00–10:00 (End ก่อน Start) → ขึ้น error (ValidationError)</li></ol></td>
                   <td class="c-design"><ul class="refs"><li><span class="chip d">D5</span>Rules ตอน save&nbsp;· Overlap<span class="sub"><code>_check_<wbr>no_<wbr>double_<wbr>booking()</code> ใน D2</span></li><li><span class="chip d">D2</span>booking.booking<span class="sub"><code>_check_<wbr>end_<wbr>after_<wbr>start()</code>&nbsp;· stop &gt; start</span></li></ul></td>
                   <td class="c-code"><ul class="code"><li><code class="p">models/<wbr>booking_booking.py</code><span class="w"><code>STATES_THAT_HOLD_THE_SLOT</code> + <code>_check_no_double_booking</code> → ValidationError&nbsp;· <code>_check_end_after_start</code></span></li></ul></td>
                   <td class="c-status"><span class="st-line"><span class="st done"><span class="mk" aria-hidden="true">✓</span>done</span></span><ul class="miss"><li class="elsewhere">มี test 6 ข้อ</li></ul></td>
@@ -2199,10 +2203,10 @@
                 <tr id="req-R5">
                   <td class="c-id"><span class="chip r">R5</span><span class="title">List view เป็นหน้าแรก</span><span class="mean">เข้าเมนูแล้วเจอตารางรายการจองเป็นหน้าแรก</span><span class="src">brief p.1&nbsp;· ข้อ 5</span></td>
                   <td class="c-brief" lang="en">The bookings list opens first; other views and menus are up to us.</td>
-                  <td class="c-th">list เป็นหน้าแรกตามโจทย์&nbsp;· เราเพิ่มเอง: calendar, form, search filter และเมนู Configuration (เฉพาะ manager)</td>
-                  <td class="c-ok"><ol class="checks"><li>เปิดเมนู Room Booking › Bookings → หน้าแรกเป็น list</li><li>สลับไป Calendar ได้ (สีตาม Resource)&nbsp;· form มี statusbar</li><li>ช่อง Search มี filter My Bookings, To Approve และ group by Resource</li><li>login เป็น Employee → ไม่เห็นเมนู Configuration › Resources&nbsp;· Manager เห็น</li></ol></td>
+                  <td class="c-th">list เป็นหน้าแรกตามโจทย์&nbsp;· เราเพิ่มเอง: calendar, form, search filter (My Bookings, To Approve, Resource, Rooms, Equipment) และเมนู Rooms / Equipment / Configuration (เฉพาะ manager)</td>
+                  <td class="c-ok"><ol class="checks"><li>เปิดเมนู Room Booking › Bookings → หน้าแรกเป็น list</li><li>สลับไป Calendar ได้ (สีตาม Resource)&nbsp;· form มี statusbar</li><li>ช่อง Search มี filter My Bookings, To Approve, Rooms, Equipment และ group by Resource</li><li>เมนู Rooms และ Equipment เปิดรายการเดียวกับ Bookings แต่มี filter ห้อง / อุปกรณ์ไว้แล้ว</li><li>login เป็น Employee → ไม่เห็นเมนู Configuration › Resources&nbsp;· Manager เห็น</li></ol></td>
                   <td class="c-design"><ul class="refs"><li><span class="chip d">D6</span>Views and menus&nbsp;· <code>view_mode</code> = list,calendar,form</li></ul></td>
-                  <td class="c-code"><ul class="code"><li><code class="p">views/<wbr>booking_booking_views.xml</code><span class="w">list, form, calendar, search + action (<code>view_mode</code> = list,calendar,form)</span></li><li><code class="p">views/<wbr>booking_menus.xml</code><span class="w">เมนู&nbsp;· Configuration เฉพาะ manager</span></li><li><code class="p">views/<wbr>booking_resource_views.xml</code><span class="w">list / form / action ของ resource</span></li></ul></td>
+                  <td class="c-code"><ul class="code"><li><code class="p">views/<wbr>booking_booking_views.xml</code><span class="w">list, form, calendar, search + action Bookings / Rooms / Equipment (<code>view_mode</code> = list,calendar,form)</span></li><li><code class="p">views/<wbr>booking_menus.xml</code><span class="w">เมนู Bookings · Rooms · Equipment · Configuration เฉพาะ manager</span></li><li><code class="p">views/<wbr>booking_resource_views.xml</code><span class="w">list / form / action ของ resource</span></li></ul></td>
                   <td class="c-status"><span class="st-line"><span class="st partial"><span class="mk" aria-hidden="true">◐</span>partial</span><span class="miss-h">ยังขาด</span></span><ul class="miss"><li>ตรวจมือใน Odoo ตาม <span class="nw">“ผ่านเมื่อ”</span> + จดวันที่</li><li class="elsewhere">โค้ดครบแล้ว&nbsp;· ไม่มี test เพราะเป็น UI</li></ul></td>
                 </tr>
                 
@@ -2213,7 +2217,7 @@
                   <td class="c-th">เราเลือก repo public&nbsp;· README สั้น ๆ: วิธีรัน, ตาราง R1–R5, design decisions และ trade-offs (assumptions กับสิ่งที่ simplify อยู่ในหัวข้อนั้น พร้อมเหตุผล)</td>
                   <td class="c-ok"><ol class="checks"><li>clone repo บนเครื่องใหม่ → docker compose up และ install module ตาม README ได้ โดยไม่ต้องแก้อะไรเพิ่ม</li><li>README มีหัวข้อ Design decisions and trade-offs ที่บอกเหตุผล และระบุ assumptions กับสิ่งที่ simplify ไว้ในหัวข้อนั้น</li><li>เปิด link repo ในหน้าต่าง incognito (ไม่ login) → เห็นโค้ดและ README</li><li>ส่ง link ให้ Roots แล้ว</li></ol></td>
                   <td class="c-design"><ul class="refs"><li><span class="chip t">Design</span>คอลัมน์ Code › <code>README.md</code><span class="sub">กล่อง สมมติฐาน ในแท็บ Design (tag R6)</span></li></ul></td>
-                  <td class="c-code"><ul class="code"><li><code class="p">README.md</code><span class="w">วิธีรัน, ตาราง R1–R5, design decisions, trade-offs</span></li><li><code class="p">tests/<wbr>test_booking.py</code><span class="w">26 test (R1 5 · R2 6 · R3 5 · R4 10)</span></li><li><code class="p">.gitignore</code><span class="w">กัน cache (<code>__pycache__</code>), <code>.DS_Store</code>, โฟลเดอร์ของ editor / tool และโน้ตงานส่วนตัว</span></li></ul></td>
+                  <td class="c-code"><ul class="code"><li><code class="p">README.md</code><span class="w">วิธีรัน, ตาราง R1–R5, design decisions, trade-offs</span></li><li><code class="p">tests/<wbr>test_booking.py</code><span class="w">30 test (R1 5 · R2 6 · R3 5 · R4 10 · ห้องกับอุปกรณ์ 4)</span></li><li><code class="p">.gitignore</code><span class="w">กัน cache (<code>__pycache__</code>), <code>.DS_Store</code>, โฟลเดอร์ของ editor / tool และโน้ตงานส่วนตัว</span></li></ul></td>
                   <td class="c-status"><span class="st-line"><span class="st partial"><span class="mk" aria-hidden="true">◐</span>partial</span><span class="miss-h">ยังขาด</span></span><ul class="miss"><li>ตรวจมือ: เปิด link repo ใน incognito</li><li>ส่ง link ให้ Roots</li></ul></td>
                 </tr>
               </tbody>
@@ -2229,6 +2233,8 @@
                 <li>วิธีกัน conflict ทำแบบของเราเอง (reject หรือ flag ก็ได้)&nbsp;· เราเลือก reject ด้วย ValidationError</li>
                 <li>lifecycle ในโจทย์เป็นแค่ตัวอย่าง (e.g.)&nbsp;· view และ menu นอกจาก list เลือกเอง</li>
                 <li>โจทย์ไม่ชัด → ตั้ง assumption และตัดสินใจเองได้ แต่ต้องอธิบายเหตุผล (เขียนไว้ใน README หัวข้อ Design decisions and trade-offs)</li>
+                <li>ห้อง + อุปกรณ์ในฟอร์มเดียว: กรอกทั้งคู่ = 2 booking แยกกัน (เรื่อง คนจอง เวลาเดียวกัน) บันทึกพร้อมกันหรือไม่บันทึกเลย · ยกเลิกหรือย้ายอันหนึ่งไม่กระทบอีกอัน · เป็นการออกแบบของเรา ไม่ได้อยู่ในโจทย์</li>
+                <li>โจทย์มีข้อเพิ่ม 3 ข้อ (ใช้ core Odoo module · AI feature · งานอัตโนมัติตามเวลา) ไม่ได้ทำในเวอร์ชันนี้ (ดู README)</li>
                 <li>ข้อกำหนด 5 ข้อแรก (R1–R5) ต้องมีครบทุกข้อ</li>
                 <li>push code ขึ้น Git แล้วส่ง link (เราเลือก repo public)&nbsp;· เตรียมอธิบายทุก design choice ใน follow-up</li>
               </ul>
@@ -2242,6 +2248,7 @@
                 <li>เวลาเปิด 1 ช่วงต่อวัน&nbsp;· booking ต้องจบในวันเดียวกัน&nbsp;· ไม่มีวันหยุด</li>
                 <li>Requested ก็กันช่องเวลาไว้แล้ว (มาก่อนได้ก่อน)</li>
                 <li>1 resource = 1 ชิ้น (projector 2 ตัว = 2 resource)</li>
+                <li>1 booking = 1 resource · ห้อง + อุปกรณ์ที่กรอกพร้อมกันเป็น 2 booking</li>
                 </ul>
               </section>
               <section class="rq-box" aria-label="Simplified on purpose">
@@ -2249,6 +2256,7 @@
                 <ul>
                 <li>ไม่ใช้ database constraint (PostgreSQL <code>EXCLUDE</code>) กันจองชน&nbsp;· ตรวจด้วย Python อย่างเดียว ถ้า 2 คน save ชนกันพร้อมกันอาจผ่านทั้งคู่&nbsp;· ไม่ใส่เพื่อให้ module เรียบง่าย</li>
                 <li>แก้เวลาเปิดของ resource แล้ว ไม่ตรวจ booking เดิมซ้ำ</li>
+                <li>ไม่ทำ booking เดียวที่มีหลาย resource (ใช้ 2 booking แทน) เพื่อไม่ต้องเปลี่ยนทุกกติกา</li>
                 </ul>
                 <p class="foot">README มีแล้ว: ทุกข้อในกล่องนี้ และทุกข้อในกล่องสมมติฐาน ยกเว้น “1 resource = 1 ชิ้น”</p>
               </section>
@@ -2298,6 +2306,7 @@
             <path class="fl ret" d="M1287 873 L1256 873" marker-end="url(#avb-ah-ret)" />
             <path class="fl flow" d="M1076 931 L1076 961" marker-end="url(#avb-ah)" />
             <path class="fl flow" d="M1151 980 L1432 980" marker-end="url(#avb-ah)" />
+            <path class="fl ret" d="M1076 999 L1076 1022" marker-end="url(#avb-ah-ret)" />
             <path class="anchor" d="M1664 1054 L1614 1054" />
             <path class="fl flow" d="M1590 1118 L1540 1118" marker-end="url(#avb-ah)" />
             <path class="fl ret" d="M1332 1118H1284" />
@@ -2405,10 +2414,11 @@
           <div class="av-n av-note" data-m="nS6" style="left:466px;top:623px;width:340px;height:66px;">ลบ resource ที่เคยมีการจองไม่ได้ (แม้การจองนั้น Cancelled) → ใช้ <b>Archive</b> แทน: resource หายจาก dropdown ตอนจองใหม่ การจองเดิมยังอยู่</div>
           <div class="av-n av-act" data-m="p21" style="left:896px;top:765px;width:360px;height:58px;"><b>Room Booking › Bookings</b>: เปิดมาเจอ List (เห็นการจองของทุกคน) · ดู Calendar เพื่อหาเวลาว่าง</div>
           <div class="av-n av-note" data-m="nX9" style="left:466px;top:770px;width:330px;height:48px;">Calendar แสดงทุกสถานะ รวม Cancelled / Completed สีเดียวกันตาม resource</div>
-          <div class="av-n av-act" data-m="p22" style="left:896px;top:853px;width:360px;height:78px;">กด <b>New</b> (หรือคลิกช่องว่างใน Calendar) แล้วกรอก Purpose, Resource, Start, End<br>Booked By = <span class="nw">ตัวเอง (ค่าเริ่มต้น)</span></div>
+          <div class="av-n av-act" data-m="p22" style="left:896px;top:853px;width:360px;height:78px;">กด <b>New</b> (หรือคลิกช่องว่างใน Calendar) แล้วกรอก Purpose, Room และ/หรือ Equipment, Start, End<br>Booked By = <span class="nw">ตัวเอง (ค่าเริ่มต้น)</span></div>
           <span class="av-g ret" style="left:1312px;top:835px;transform:translateX(-100%);">มาจาก A ใน phase 4</span>
           <div class="av-n av-act" data-m="p23" style="left:1001px;top:961px;width:150px;height:38px;">กด <b>Save</b></div>
-          <div class="av-n av-act" data-m="p24" style="left:1432px;top:951px;width:360px;height:58px;"><code>create()</code> ตั้งสถานะ = <b>Requested</b> เสมอ (ส่งสถานะอื่นมาก็ไม่สน)</div>
+          <div class="av-n av-err" data-m="eP0" style="left:1001px;top:1022px;width:270px;height:66px;"><span class="x">✕</span> Choose a room or an equipment for this booking.<span class="nosave">เช็ก 0 (ตอน create) · ไม่บันทึกอะไร</span></div>
+          <div class="av-n av-act" data-m="p24" style="left:1432px;top:929px;width:360px;height:80px;"><code>create()</code> ตั้งสถานะ = <b>Requested</b> เสมอ (ส่งสถานะอื่นมาก็ไม่สน) · Room + Equipment → แยกเป็น 2 การจอง</div>
           <div class="av-n av-note" data-m="nCh" style="left:1664px;top:1021px;width:186px;height:66px;">เช็กตามลำดับ <b>1 → 4</b> · ข้อแรกที่ไม่ผ่านจะหยุดทันที และไม่บันทึกอะไร</div>
           <div class="av-q left" data-m="qD1" style="left:1648px;top:1095px;width:202px;"><span class="id">เช็ก 1</span> End หลัง Start?</div>
           <div class="av-n av-err" data-m="eD1" style="left:1332px;top:1098px;width:208px;height:51px;"><span class="x">✕</span> End must be after Start.<span class="nosave">ไม่บันทึกอะไร</span></div>
@@ -2421,7 +2431,7 @@
           <div class="av-q left" data-m="qD3" style="left:1648px;top:1251px;width:202px;"><span class="id">เช็ก 3</span> ชนกับการจอง Requested / Confirmed ของ resource เดียวกันไหม?</div>
           <div class="av-n av-err" data-m="eD3" style="left:1332px;top:1289px;width:208px;height:85px;"><span class="x">✕</span> &lt;Resource&gt; is already booked at that time: <span class="nw">"&lt;purpose&gt;"</span> by &lt;user&gt;. …<span class="nosave">ไม่บันทึกอะไร</span></div>
           <span class="av-g " style="left:1544px;top:1290px;">[ชน]</span>
-          <div class="av-n av-note" data-m="nD3" style="left:1676px;top:1319px;width:174px;height:101px;">ต่อกันพอดี (10–11 แล้ว 11–12) ได้ · คนละ resource ได้ · ทับการจอง Cancelled / Completed ได้</div>
+          <div class="av-n av-note" data-m="nD3" style="left:1676px;top:1319px;width:174px;height:124px;">ต่อกันพอดี (10–11 แล้ว 11–12) ได้ · คนละ resource ได้ · ทับการจอง Cancelled / Completed ได้ · ห้อง + อุปกรณ์: ชนอันใดก็ไม่บันทึกทั้งคู่</div>
           <span class="av-g " style="left:1620px;top:1333px;">[ไม่ชน]</span>
           <div class="av-q left" data-m="qD4" style="left:1648px;top:1430px;width:202px;"><span class="id">เช็ก 4</span> Booked By = คนที่กด Save ไหม?<small>record rule ของ Employee</small><small>ตอนแก้การจองของตัวเอง ผ่านเสมอ</small></div>
           <div class="av-n av-err" data-m="eD4" style="left:1332px;top:1484px;width:208px;height:85px;"><span class="x">✕</span> AccessError "… doesn't have 'create' access to: Booking"<span class="nosave">ไม่บันทึกอะไร</span></div>
@@ -2510,12 +2520,12 @@
         </div>
       </section>
       <!-- activity-views:end -->
-      <section id="view-activity" class="view" data-view="activity" data-stage-width="1920" data-stage-height="3251" data-open-margin="0" role="tabpanel" aria-label="Activity diagram: booking flow from an empty system to Completed or Cancelled" hidden>
+      <section id="view-activity" class="view" data-view="activity" data-stage-width="1920" data-stage-height="3262" data-open-margin="0" role="tabpanel" aria-label="Activity diagram: booking flow from an empty system to Completed or Cancelled" hidden>
         <div class="ac-board">
           <header class="ac-header">
             <div class="ac-title">
               <h1>Room Booking · Activity: จากระบบว่าง ถึงการจองจบ</h1>
-              <p class="subtitle">UML activity diagram ภาพรวมของโมดูล ตั้งแต่ติดตั้ง สร้าง user ตั้งสิทธิ์ ไปจนการจองจบที่ Completed หรือ Cancelled · เขียนแบบ high level ไม่ลงรายละเอียดโค้ด · ณ 21 Nov 2026</p>
+              <p class="subtitle">UML activity diagram ภาพรวมของโมดูล ตั้งแต่ติดตั้ง สร้าง user ตั้งสิทธิ์ ไปจนการจองจบที่ Completed หรือ Cancelled · เขียนแบบ high level ไม่ลงรายละเอียดโค้ด · ณ 22 Nov 2026</p>
               <p class="howto"><b>อ่านยังไง</b> เริ่มที่ <span class="dot" aria-hidden="true"></span> บนซ้าย แล้วตามลูกศรลงล่าง · 4 ช่วง: เริ่มระบบ → พนักงานจอง → Manager ตัดสิน → หลังอนุมัติ · คอลัมน์ = ใครทำ · ◇ ที่มีคำถาม ให้เดินเส้นที่ [เงื่อนไข] เป็นจริง · ◇ ที่เขียนว่า จุดรวม แค่รวมเส้น ไม่ได้ตัดสินอะไร · เส้นแดง = ไม่ผ่าน ไม่บันทึกอะไร · เส้นประ = วนกลับไปทำซ้ำ</p>
             </div>
             <div class="ac-legend" aria-label="ความหมายของสัญลักษณ์"><span class="lg-item"><span class="lg-key"><svg class="lg-ico" viewBox="0 0 30 22" width="30" height="22" aria-hidden="true"><circle class="ac-init" cx="15" cy="11" r="8" /></svg></span>เริ่ม (initial)</span><span class="lg-item"><span class="lg-key"><svg class="lg-ico" viewBox="0 0 30 22" width="30" height="22" aria-hidden="true"><rect class="lg-act" x="2" y="3" width="26" height="16" rx="5" /></svg></span>ขั้นตอน (action)</span><span class="lg-item"><span class="lg-key"><span class="gd lg-g">[ ]</span></span>เงื่อนไขของเส้น (guard)</span><span class="lg-item"><span class="lg-key"><svg class="lg-ico" viewBox="0 0 30 22" width="30" height="22" aria-hidden="true"><circle class="ac-fin-o" cx="15" cy="11" r="9" /><circle class="ac-fin-i" cx="15" cy="11" r="4.5" /></svg></span>จบการจอง (activity final)</span><span class="lg-item"><span class="lg-key"><svg class="lg-ico" viewBox="0 0 30 22" width="30" height="22" aria-hidden="true"><circle class="ac-ff" cx="15" cy="11" r="8" /><path class="ac-ffx" d="M9.3 5.3L20.7 16.7M20.7 5.3L9.3 16.7" /></svg></span>เลิกทางนี้ (flow final)</span><span class="lg-item"><span class="lg-key"><span class="lg-lane">lane</span></span>คอลัมน์ = ใครทำ (swimlane)</span><span class="lg-item"><span class="lg-key"><svg class="lg-ico" viewBox="0 0 30 22" width="30" height="22" aria-hidden="true"><path class="ac-e" d="M2 11H22" /><path class="lg-cap" d="M21 6.5L29 11L21 15.5z" /></svg></span>ทางปกติ</span><span class="lg-item"><span class="lg-key"><svg class="lg-ico" viewBox="0 0 30 22" width="30" height="22" aria-hidden="true"><path class="ac-e err" d="M2 11H22" /><path class="lg-cap err" d="M21 6.5L29 11L21 15.5z" /></svg></span>ไม่ผ่าน: ไม่บันทึกอะไร (error)</span><span class="lg-item"><span class="lg-key"><svg class="lg-ico" viewBox="0 0 30 22" width="30" height="22" aria-hidden="true"><path class="ac-e loop" d="M2 11H22" /><path class="lg-cap" d="M21 6.5L29 11L21 15.5z" /></svg></span>วนกลับไปทำซ้ำ (loop-back)</span><span class="lg-item"><span class="lg-key"><svg class="lg-ico" viewBox="0 0 30 22" width="30" height="22" aria-hidden="true"><rect class="lg-err" x="2" y="3" width="26" height="16" rx="5" /></svg></span>ขั้นตอน error ของ Odoo</span><span class="lg-item"><span class="lg-key"><span class="stt">→ Requested</span></span>สถานะหลังขั้นนี้ (เขียว = จบ)</span><span class="lg-item"><span class="lg-key"><span class="chip r">R1</span></span>requirement (ID ตามแท็บ Requirements)</span><span class="lg-item lg-wide"><span class="lg-key"><svg class="lg-ico" viewBox="0 0 30 22" width="30" height="22" aria-hidden="true"><polygon class="ac-dia" points="15,2 24,11 15,20 6,11" /></svg></span><span><b class="lg-b">ทางแยก (decision)</b> = มีคำถามอยู่ข้างๆ บอกว่าตัดสินอะไร · <b class="lg-b">จุดรวม (merge)</b> = เส้นมารวมกัน ไม่ได้ตัดสินอะไร</span></span></div>
@@ -2592,10 +2602,10 @@
           <div class="ac-act" data-node="p1_res" style="left:44px;top:929px;width:310px;height:104px;"><span class="tx">เพิ่มหรือแก้ห้อง / อุปกรณ์ (resource) และเวลาเปิด-ปิด เช่น 08:00-18:00</span><span class="sub">Admin อยู่ในกลุ่ม Manager จึงทำได้</span><span class="meta"><span class="chip r">R1</span><span class="chip r">R3</span></span></div>
           <div class="ac-act err" data-node="err_hours" style="left:1555px;top:1031px;width:180px;height:100px;"><span class="tx">Odoo แจ้ง error ไม่บันทึกอะไรเลย</span><span class="sub">Admin ต้องแก้เวลาแล้วลองใหม่</span></div>
           <div class="ac-act" data-node="e_open" style="left:438px;top:1220px;width:262px;height:102px;"><span class="tx">Employee เข้าระบบ เปิดเมนู Room Booking ดูรายการจอง / ปฏิทิน แล้วเลือกช่วงที่ว่าง</span><span class="meta"><span class="chip r">R5</span></span></div>
-          <div class="ac-act" data-node="e_fill" style="left:438px;top:1462px;width:262px;height:104px;"><span class="tx">กดสร้างการจองใหม่ กรอกห้อง เวลา เรื่อง แล้วกด Save</span><span class="sub">แก้การจองเดิมก็ผ่านขั้นนี้</span><span class="meta"><span class="chip r">R1</span></span></div>
+          <div class="ac-act" data-node="e_fill" style="left:438px;top:1462px;width:262px;height:104px;"><span class="tx">กดสร้างการจองใหม่ กรอกห้อง และ/หรือ อุปกรณ์ เวลา เรื่อง แล้วกด Save</span><span class="sub">แก้การจองเดิมก็ผ่านขั้นนี้</span><span class="meta"><span class="chip r">R1</span></span></div>
           <div class="ac-act" data-node="p2_check" style="left:1336px;top:1472px;width:236px;height:84px;"><span class="tx">ระบบรับ Save แล้วตรวจกติกา</span><span class="sub">การจองใหม่เริ่มที่ Requested เสมอ</span><span class="meta"><span class="chip r">R4</span></span></div>
           <div class="ac-act err" data-node="rbox" style="left:1164px;top:1592.5px;width:170px;height:103px;"><span class="tx">ระบบแจ้ง error บนหน้าจอ และไม่บันทึกอะไรเลย</span><span class="sub">บอกว่าติดข้อไหน</span></div>
-          <div class="ac-act" data-node="p2_saved" style="left:1336px;top:1844px;width:236px;height:83px;"><span class="tx">ระบบบันทึกการจอง สถานะ Requested</span><span class="meta"><span class="chip r">R4</span><span class="stt">→ Requested</span></span></div>
+          <div class="ac-act" data-node="p2_saved" style="left:1336px;top:1844px;width:236px;height:83px;"><span class="tx">ระบบบันทึกการจอง สถานะ Requested</span><span class="sub">ห้อง + อุปกรณ์ = 2 การจองแยกกัน</span><span class="meta"><span class="chip r">R4</span><span class="stt">→ Requested</span></span></div>
           <div class="ac-act" data-node="m_open" style="left:824px;top:2136px;width:270px;height:82px;"><span class="tx">Manager เปิดรายการ To Approve ดูคำขอที่รออยู่</span><span class="meta"><span class="chip r">R5</span></span></div>
           <div class="ac-act" data-node="o_conf" style="left:1336px;top:2366.5px;width:236px;height:83px;"><span class="tx">ระบบตรวจซ้ำว่ายังไม่ชน แล้วเปลี่ยนเป็น Confirmed</span><span class="meta"><span class="chip r">R4</span><span class="stt">→ Confirmed</span></span></div>
           <div class="ac-act" data-node="m_set" style="left:824px;top:2850.5px;width:270px;height:104px;"><span class="tx">Manager ตั้งสถานะเป็น Completed ผ่าน API หรือ import</span><span class="sub">ไม่มีปุ่มใน Odoo</span><span class="meta"><span class="chip r">R4</span></span></div>
@@ -2623,7 +2633,7 @@
           <div class="ac-g" data-label data-for="e7" style="left:1478px;top:1076px;max-width:80px;transform:translateY(-100%);"><span class="gd">[ไม่ถูก]</span></div>
           <div class="ac-cap loop err" data-label data-for="loop-hours" style="left:1635px;top:943px;max-width:130px;transform:translate(-100%,-50%);"><span class="tx">วนกลับไปแก้เวลา</span></div>
           <div class="ac-cap merge" data-label data-for="m_form" style="left:595px;top:1384px;max-width:146px;transform:translateY(-50%);"><span class="tx"><span class="mg">จุดรวม:</span> จองใหม่<br>หรือวนกลับมาแก้<br>(หลัง error หรือ<br>ระหว่างรออนุมัติ)</span></div>
-          <div class="ac-q" data-label data-for="d_rules" style="left:1484px;top:1627px;max-width:262px;"><span class="tx">ผ่านกติกาการจองทั้งหมดไหม?</span><ul class="bl"><li>เวลาจบอยู่หลังเวลาเริ่ม</li><li>อยู่ในเวลาเปิดของห้อง</li><li>ไม่ชนการจองอื่นของห้องเดียวกัน</li><li>จองในชื่อตัวเอง (Manager แทนคนอื่นได้)</li></ul><span class="ptr">ทีละ<span class="nw">เช็ก</span> + error ของ Odoo: ดูแท็บ <button type="button" class="lk" data-show-view="activity-base">Activity ละเอียด</button></span><span class="meta"><span class="chip r">R1</span><span class="chip r">R2</span><span class="chip r">R3</span></span></div>
+          <div class="ac-q" data-label data-for="d_rules" style="left:1484px;top:1627px;max-width:262px;"><span class="tx">ผ่านกติกาการจองทั้งหมดไหม?</span><ul class="bl"><li>มีห้องหรืออุปกรณ์อย่างน้อย 1</li><li>เวลาจบอยู่หลังเวลาเริ่ม</li><li>อยู่ในเวลาเปิดของ resource</li><li>ไม่ชนการจองอื่นของ resource เดียวกัน</li><li>จองในชื่อตัวเอง (Manager แทนคนอื่นได้)</li></ul><span class="ptr">ทีละ<span class="nw">เช็ก</span> + error ของ Odoo: ดูแท็บ <button type="button" class="lk" data-show-view="activity-base">Activity ละเอียด</button></span><span class="meta"><span class="chip r">R1</span><span class="chip r">R2</span><span class="chip r">R3</span></span></div>
           <div class="ac-g" data-label data-for="e13" style="left:1445px;top:1670px;max-width:130px;transform:translateX(-100%);"><span class="gd">[ผ่านทั้งหมด]</span></div>
           <div class="ac-g" data-label data-for="e14" style="left:1430px;top:1639px;max-width:100px;transform:translate(-100%,-100%);"><span class="gd">[ไม่ผ่าน]</span><br><span class="gn">ข้อใดข้อหนึ่ง</span></div>
           <div class="ac-q" data-label data-for="d_retry" style="left:581px;top:1621px;max-width:150px;transform:translateY(-100%);"><span class="tx">จะแก้แล้ว Save ใหม่ หรือเลิก?</span></div>
@@ -2656,6 +2666,7 @@
             <ul>
               <li>booking ที่ยังเป็น <b>Requested</b> แม้เลยเวลา End แล้ว ก็ยังเป็น Requested ต่อไป จนกว่าจะมีคน Confirm หรือ Cancel · <b>Completed</b> และ <b>Cancelled</b> เป็นสถานะสุดท้าย ย้อนกลับหรือข้ามขั้นไม่ได้ (R4)</li>
               <li><b>ไม่ได้วาดไว้:</b> Delete ทำได้เฉพาะ Manager (Employee ใช้ Cancel แทน) · Duplicate booking ที่ยัง Requested / Confirmed ไม่สำเร็จ เพราะจะชนกับของเดิม · แก้เฉพาะ Purpose ไม่มีการ<span class="nw">เช็ก</span>เพิ่ม · Employee แก้ห้อง / เวลาไม่ได้หลัง Confirmed (ต้อง Cancel แล้วจองใหม่) แต่ Manager แก้ได้</li>
+              <li><b>ห้อง + อุปกรณ์ในฟอร์มเดียว:</b> บันทึกเป็น 2 การจองที่แยกกัน (เรื่อง คนจอง เวลาเดียวกัน) · ถ้าอันใดอันหนึ่งชน ไม่บันทึกทั้งคู่ · ยกเลิกหรือย้ายอันหนึ่ง ไม่กระทบอีกอัน</li>
             </ul>
           </section>
         </div>

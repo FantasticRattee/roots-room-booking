@@ -52,7 +52,10 @@
                     </div>
                     <group>
                         <group>
-                            <field name="resource_id"/>
+                            <!-- New booking: pick a room, an equipment or both. Saved booking: one resource. -->
+                            <field name="room_id" invisible="id"/>
+                            <field name="equipment_id" invisible="id"/>
+                            <field name="resource_id" invisible="not id"/>
                             <field name="user_id"/>
                         </group>
                         <group>
@@ -99,6 +102,11 @@
                         domain="[('state', '=', 'requested')]"/>
                 <filter name="group_resource" string="Resource"
                         context="{'group_by': 'resource_id'}"/>
+                <separator/>
+                <filter name="rooms" string="Rooms"
+                        domain="[('resource_id.resource_type', '=', 'room')]"/>
+                <filter name="equipment" string="Equipment"
+                        domain="[('resource_id.resource_type', '=', 'equipment')]"/>
             </search>
         </field>
     </record>
@@ -114,6 +122,20 @@
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Book your first room or equipment</p>
         </field>
+    </record>
+    <!-- Menu Room Booking > Rooms: the same bookings, with the Rooms filter already on -->
+    <record id="booking_room_action" model="ir.actions.act_window">
+        <field name="name">Rooms</field>
+        <field name="res_model">booking.booking</field>
+        <field name="view_mode">list,calendar,form</field>
+        <field name="context">{'search_default_rooms': 1}</field>
+    </record>
+    <!-- Menu Room Booking > Equipment: the same bookings, with the Equipment filter already on -->
+    <record id="booking_equipment_action" model="ir.actions.act_window">
+        <field name="name">Equipment</field>
+        <field name="res_model">booking.booking</field>
+        <field name="view_mode">list,calendar,form</field>
+        <field name="context">{'search_default_equipment': 1}</field>
     </record>
     <!-- ========================== End Action =========================== -->
 </odoo>
