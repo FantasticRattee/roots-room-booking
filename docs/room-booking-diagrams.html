@@ -3025,7 +3025,7 @@
           const hintText = () => {
             const tab = document.getElementById("tab-activity");
             const label = tab ? tab.textContent.replace(/^[\s\d.\u2460-\u2473\u2776-\u2793]+/, "").trim() : "";
-            return "ลากนิ้วเดียวเพื่อเลื่อน · ใช้สองนิ้วถ่างเพื่อซูม · แตะสองครั้งเพื่อขยายให้อ่านได้ · ในแท็บ " + (label || HINT_TAB_FALLBACK) + " แตะกล่องเพื่อดูไฟล์";
+            return "ลากนิ้วเดียวเพื่อเลื่อน · ใช้สองนิ้วถ่างเพื่อซูม · แตะสองครั้งเพื่อขยายให้อ่านได้";
           };
 
           const coarse = window.matchMedia("(pointer: coarse)");
